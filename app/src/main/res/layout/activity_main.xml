@@ -35,11 +35,11 @@
             android:src="@mipmap/more_laiwang"
             android:tag="来往"/>
 
-        <ImageView
+<!--        <ImageView
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@mipmap/more_mms"
-            android:tag="短信"/>
+            android:tag="短信"/>-->
 
 
     </com.itheima.skywheeldemo.SkyWheelLayout>

@@ -2,6 +2,7 @@ package com.itheima.skywheeldemo;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -41,19 +42,21 @@ public class SkyWheelLayout extends ViewGroup {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         mCx = w / 2;
         mCy = h / 2;
+        Log.d(TAG, "onSizeChanged: " + mCx + " " + mCy);
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
-            int childX = mCx;
-            int childY = child.getMeasuredHeight() / 2;
-
-            int left = childX - child.getMeasuredWidth() / 2;
-            int top = childY - child.getMeasuredHeight() / 2;
-            int right = childX + child.getMeasuredWidth() / 2;
-            int bottom = childY + child.getMeasuredHeight() / 2;
+            float radius = getMeasuredWidth() / 2 - child.getMeasuredWidth() / 2;
+            double degree =  2 * Math.PI / 4;
+            float childX = (float) (mCx + Math.sin(i * degree) * radius);
+            float childY = (float) (mCy - Math.cos(i * degree) * radius);
+            int left = (int) (childX - child.getMeasuredWidth() / 2);
+            int top = (int) (childY - child.getMeasuredHeight() / 2);
+            int right = (int) (childX + child.getMeasuredWidth() / 2);
+            int bottom = (int) (childY + child.getMeasuredHeight() / 2);
             child.layout(left, top, right, bottom);
         }
 
