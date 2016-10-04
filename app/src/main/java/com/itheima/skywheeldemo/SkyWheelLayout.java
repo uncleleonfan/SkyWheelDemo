@@ -50,7 +50,7 @@ public class SkyWheelLayout extends ViewGroup {
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
             float radius = getMeasuredWidth() / 2 - child.getMeasuredWidth() / 2;
-            double degree =  2 * Math.PI / 4;
+            double degree =  2 * Math.PI / getChildCount();
             float childX = (float) (mCx + Math.sin(i * degree) * radius);
             float childY = (float) (mCy - Math.cos(i * degree) * radius);
             int left = (int) (childX - child.getMeasuredWidth() / 2);
