@@ -1,12 +1,13 @@
 package com.itheima.skywheeldemo;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 
 /**
  * 创建者: Leon
@@ -19,9 +20,10 @@ public class SkyWheelLayout extends ViewGroup {
     private int mCx;
     private int mCy;
 
-    private double mDiffDegree;
+    private float mDiffDegree;
 
     private GestureDetector mGestureDetector;
+    private double mCellDegree;
 
     public SkyWheelLayout(Context context) {
         this(context, null);
@@ -49,7 +51,7 @@ public class SkyWheelLayout extends ViewGroup {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         mCx = w / 2;
         mCy = h / 2;
-        Log.d(TAG, "onSizeChanged: " + mCx + " " + mCy);
+        mCellDegree = 2 * Math.PI / getChildCount();
     }
 
     @Override
@@ -57,9 +59,8 @@ public class SkyWheelLayout extends ViewGroup {
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
             float radius = getMeasuredWidth() / 2 - child.getMeasuredWidth() / 2;
-            double degree = 2 * Math.PI / getChildCount();
-            float childX = (float) (mCx + Math.sin(i * degree + mDiffDegree) * radius);
-            float childY = (float) (mCy - Math.cos(i * degree + mDiffDegree) * radius);
+            float childX = (float) (mCx + Math.sin(i * mCellDegree + mDiffDegree) * radius);
+            float childY = (float) (mCy - Math.cos(i * mCellDegree + mDiffDegree) * radius);
             int left = (int) (childX - child.getMeasuredWidth() / 2);
             int top = (int) (childY - child.getMeasuredHeight() / 2);
             int right = (int) (childX + child.getMeasuredWidth() / 2);
@@ -109,7 +110,7 @@ public class SkyWheelLayout extends ViewGroup {
             double endDegree = getDegree(e2.getY(), e2.getX());
             double startDegree = getDegree(e2.getY() + distanceY, e2.getX() + distanceX);
             double diffDegree = endDegree - startDegree;
-            updateDegree(diffDegree);
+            updateDegree((float) (mDiffDegree + diffDegree));
             return true;
         }
 
@@ -121,16 +122,34 @@ public class SkyWheelLayout extends ViewGroup {
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             double startDegree = getDegree(e2);
-            //1s
-            double endDegree = getDegree(e2.getY() + velocityX, e2.getX() + velocityY);
-            double diffDegree = endDegree - startDegree;
-            updateDegree(diffDegree);
+            //1ms之后转过的角度
+            double endDegree = getDegree(e2.getY() + velocityY / 1000, e2.getX() + velocityX / 1000 );
+            double degreePerMilli = endDegree - startDegree;
+            //ls之后转过的角度
+            double degreePerSecond = degreePerMilli * 1000;
+
+            //设置转动时间，角速度越大，时间越长
+            long duration = (long) Math.abs(degreePerSecond * 1000) ; //以毫秒为单位
+            if (duration > 800) {
+                duration = 800;
+            }
+            double diffDegree = (float) (duration * degreePerMilli);
+            ValueAnimator valueAnimator = ValueAnimator.ofFloat(mDiffDegree, (float) (mDiffDegree + diffDegree));
+            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    updateDegree((float) animation.getAnimatedValue());
+                }
+            });
+            valueAnimator.setDuration(duration);
+            valueAnimator.setInterpolator(new DecelerateInterpolator());
+            valueAnimator.start();
             return true;
         }
     };
 
-    private void updateDegree(double diffDegree) {
-        mDiffDegree += diffDegree;
+    private void updateDegree(float diffDegree) {
+        mDiffDegree =  diffDegree;
         requestLayout();
     }
 
@@ -139,7 +158,7 @@ public class SkyWheelLayout extends ViewGroup {
     }
 
     private double getDegree(MotionEvent e) {
-        return getDegree(e.getY() - mCy, e.getX() - mCx);
+        return getDegree(e.getY(), e.getX());
     }
 
 
