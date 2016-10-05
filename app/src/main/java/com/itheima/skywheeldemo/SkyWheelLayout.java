@@ -57,7 +57,7 @@ public class SkyWheelLayout extends ViewGroup {
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
             float radius = getMeasuredWidth() / 2 - child.getMeasuredWidth() / 2;
-            double degree =  2 * Math.PI / getChildCount();
+            double degree = 2 * Math.PI / getChildCount();
             float childX = (float) (mCx + Math.sin(i * degree + mDiffDegree) * radius);
             float childY = (float) (mCy - Math.cos(i * degree + mDiffDegree) * radius);
             int left = (int) (childX - child.getMeasuredWidth() / 2);
@@ -109,8 +109,7 @@ public class SkyWheelLayout extends ViewGroup {
             double endDegree = getDegree(e2.getY(), e2.getX());
             double startDegree = getDegree(e2.getY() + distanceY, e2.getX() + distanceX);
             double diffDegree = endDegree - startDegree;
-            mDiffDegree += diffDegree;
-            requestLayout();
+            updateDegree(diffDegree);
             return true;
         }
 
@@ -121,12 +120,26 @@ public class SkyWheelLayout extends ViewGroup {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            return false;
+            double startDegree = getDegree(e2);
+            //1s
+            double endDegree = getDegree(e2.getY() + velocityX, e2.getX() + velocityY);
+            double diffDegree = endDegree - startDegree;
+            updateDegree(diffDegree);
+            return true;
         }
     };
 
+    private void updateDegree(double diffDegree) {
+        mDiffDegree += diffDegree;
+        requestLayout();
+    }
+
     private double getDegree(float y, float x) {
         return Math.atan2(y - mCy, x - mCx);
+    }
+
+    private double getDegree(MotionEvent e) {
+        return getDegree(e.getY() - mCy, e.getX() - mCx);
     }
 
 
