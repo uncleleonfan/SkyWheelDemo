@@ -16,6 +16,8 @@ import android.view.animation.DecelerateInterpolator;
  */
 public class SkyWheelLayout extends ViewGroup {
     private static final String TAG = "SkyWheelLayout";
+    private static final int CHILD_NO_FOUND = -1;
+    private OnItemClickListener mOnItemClickListener;
 
     private int mCx;
     private int mCy;
@@ -94,6 +96,15 @@ public class SkyWheelLayout extends ViewGroup {
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
+            int index = getChildIndex(e);
+            if (index != CHILD_NO_FOUND) {
+                View child = getChildAt(index);
+                child.performClick();
+                if (mOnItemClickListener != null) {
+                    mOnItemClickListener.onItemClick(child);
+                }
+                return true;
+            }
             return false;
         }
 
@@ -161,5 +172,21 @@ public class SkyWheelLayout extends ViewGroup {
         return getDegree(e.getY(), e.getX());
     }
 
+    private int getChildIndex(MotionEvent e) {
+        for (int i = 0; i < getChildCount(); i++) {
+            View child = getChildAt(i);
+            if (e.getX() > child.getLeft() && e.getX() < child.getRight() && e.getY() > child.getTop() && e.getY() < child.getBottom()) {
+                return i;
+            }
+        }
+        return CHILD_NO_FOUND;
+    }
 
+    public interface OnItemClickListener {
+        void onItemClick(View v);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener l) {
+        mOnItemClickListener = l;
+    }
 }
